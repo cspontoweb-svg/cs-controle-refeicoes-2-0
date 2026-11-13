@@ -500,64 +500,84 @@ function hideAuth() {
  * O backend deve devolver HTML contendo:
  * parent.postMessage({nonce: "...", result: {...}}, "*");
  */
+f
 function apiRequest(payload) {
- if (
-  !CS_API_URL.startsWith('https://script.google.com/macros/s/') ||
-  CS_API_URL.includes('COLE_A_URL')
- ) {
-  return Promise.reject(new Error('A URL do Apps Script não foi carregada. Abra o sistema pela URL da implantação /exec.'));
- }
-
- return new Promise((resolve, reject) => {
-  const nonce = (crypto && crypto.randomUUID)
-   ? crypto.randomUUID()
-   : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
-
-  const request = {...payload, nonce};
-  let finished = false;
-  let timer;
-
-  const finish = (fn, value) => {
-   if (finished) return;
-   finished = true;
-   clearTimeout(timer);
-   window.removeEventListener('message', onMessage);
-   fn(value);
-  };
-
-  const onMessage = event => {
-  const data = event.data;
-
-  console.log('CS20: mensagem recebida:', data);
-  console.log('CS20: nonce esperado:', nonce);
-
-  if (!data || data.nonce !== nonce || !data.result) {
-    console.warn('CS20: resposta ignorada — nonce ou formato diferente.');
-    return;
+  if (
+    !CS_API_URL.startsWith('https://script.google.com/macros/s/') ||
+    CS_API_URL.includes('COLE_A_URL')
+  ) {
+    return Promise.reject(
+      new Error('A URL do Apps Script não foi carregada. Abra o sistema pela URL da implantação /exec.')
+    );
   }
 
-  console.log('CS20: resposta reconhecida:', data.result);
+  return new Promise((resolve, reject) => {
+    const nonce = (crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
 
-  if (data.result.ok === false) {
-    finish(reject, new Error(
-      data.result.error || 'Falha na operação central.'
-    ));
-  } else {
-    finish(resolve, data.result);
-  }
-};
+    const request = { ...payload, nonce };
+    let finished = false;
+    let timer;
 
-  timer = setTimeout(() => {
-   finish(reject, new Error('O servidor não respondeu em 25 segundos. Verifique a implantação e a conexão.'));
-  }, 25000);
+    const finish = (fn, value) => {
+      if (finished) return;
 
-  window.addEventListener('message', onMessage);
+      finished = true;
+      clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+      fn(value);
+    };
 
-  $('csApiPayload').value = JSON.stringify(request);
-  $('csApiForm').action = CS_API_URL;
-  $('csApiForm').submit();
- });
+    const onMessage = event => {
+      /*
+       * O Google Apps Script pode entregar a resposta
+       * por um frame interno. Por isso não validamos
+       * event.source contra o iframe externo.
+       *
+       * O nonce exclusivo identifica a solicitação.
+       */
+      const data = event.data;
+
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        data.nonce !== nonce ||
+        !data.result ||
+        typeof data.result !== 'object'
+      ) {
+        return;
+      }
+
+      const result = data.result;
+
+      if (result.ok === false) {
+        finish(
+          reject,
+          new Error(result.error || 'Falha na operação central.')
+        );
+      } else {
+        finish(resolve, result);
+      }
+    };
+
+    timer = setTimeout(() => {
+      finish(
+        reject,
+        new Error(
+          'O servidor não respondeu em 25 segundos. Verifique a implantação e a conexão.'
+        )
+      );
+    }, 25000);
+
+    window.addEventListener('message', onMessage);
+
+    $('csApiPayload').value = JSON.stringify(request);
+    $('csApiForm').action = CS_API_URL;
+    $('csApiForm').submit();
+  });
 }
+
 
 /* ======================== COLABORADORES ======================== */
 
