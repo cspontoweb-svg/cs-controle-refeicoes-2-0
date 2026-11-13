@@ -441,8 +441,8 @@ tick();
 
 /* ======================== API CENTRAL ======================== */
 
-/* SUBSTITUA pelo endereço da NOVA implantação do Apps Script. */
-const CS_API_URL = 'COLE_A_URL_DA_NOVA_IMPLANTACAO_2_0_AQUI';
+/* API central: implantação CS 2.0 informada pelo usuário. */
+const CS_API_URL = 'https://script.google.com/macros/s/AKfycbzO2hWIzC3TDrnFv7zGmgLElQS0GAhMfRBDUkuxhJUwOynskpgL4iXVExjk1T1Q2wDn/exec';
 
 const CS_AUTH_KEY = 'cs_auth_cache_v2';
 const CS_SYNCED_KEY = 'cs_synced_ids_v2';
@@ -505,7 +505,7 @@ function apiRequest(payload) {
   !CS_API_URL.startsWith('https://script.google.com/macros/s/') ||
   CS_API_URL.includes('COLE_A_URL')
  ) {
-  return Promise.reject(new Error('Configure a URL da nova implantação 2.0 no HTML.'));
+  return Promise.reject(new Error('A URL do Apps Script não foi carregada. Abra o sistema pela URL da implantação /exec.'));
  }
 
  return new Promise((resolve, reject) => {
