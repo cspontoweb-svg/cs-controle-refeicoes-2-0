@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#173B57">
+<title>CS | Controle de Acesso e Refeições 2.0</title>
+
+<style>
+:root {
+ --site-primary:#173B57;
+ --site-on-primary:#FFFFFF;
+ --site-secondary:#DCEAF1;
+ --site-on-secondary:#173B57;
+ --site-background:#F2F5F7;
+ --site-on-background:#17232D;
+ --site-font-body:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+ --surface:light-dark(#FFFFFF,#1D2933);
+ --surface-2:light-dark(#F7F9FA,#263540);
+ --muted:light-dark(#647482,#A9B8C3);
+ --line:light-dark(#DCE3E8,#3A4A56);
+ --good:#16845B;
+ --bad:#B33A3A;
+ --warn:#A76B12;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--site-background);color:var(--site-on-background);font-family:var(--site-font-body)}
+button,input,select{font-family:inherit}
+#app{min-height:100vh;background:var(--site-background);color:var(--site-on-background)}
+header{background:var(--site-primary);color:white;padding:18px clamp(16px,4vw,42px);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.mark{width:52px;height:42px;border:1px solid #ffffff80;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;line-height:1}
+.mark b{font-size:23px}
+.mark em{font-style:normal;font-size:7px;letter-spacing:1.4px;margin-top:2px}
+.brand strong{font-size:18px;letter-spacing:.02em}
+.brand small{display:block;opacity:.78;margin-top:3px;font-size:11px;letter-spacing:.12em}
+.header-right{font-size:12px;opacity:.85;text-align:right}
+main{max-width:1440px;margin:auto;padding:26px clamp(14px,3vw,34px) 44px}
+.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.13em;color:var(--muted);text-transform:uppercase}
+.topline h1{font-size:27px;margin:6px 0 0;letter-spacing:-.04em}
+.demo{background:#FFF1D6;color:#79500B;padding:7px 11px;border-radius:30px;font-size:11px;font-weight:800}
+.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.85fr);gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 4px 18px #122b3a08}
+.panel h2{font-size:16px;margin:0 0 5px}
+.sub{color:var(--muted);font-size:12px;margin:0 0 18px}
+.scan-panel{min-height:430px;display:flex;flex-direction:column}
+.scan-status{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--good)}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 5px #16845b18}
+.scan-center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px 8px}
+.qr-icon{width:86px;height:86px;border:2px dashed var(--line);border-radius:20px;display:grid;place-items:center;color:var(--site-primary);margin-bottom:17px;background:var(--surface-2)}
+.qr-icon svg{width:42px;height:42px}
+.scan-center h3{font-size:21px;margin:0 0 7px}
+.scan-center p{font-size:13px;color:var(--muted);margin:0 0 18px}
+.scan-input{width:min(440px,100%);height:48px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:0 14px;font:inherit;font-size:14px;outline:none}
+.scan-input:focus{border-color:var(--site-primary);box-shadow:0 0 0 3px #1d557522}
+.hint{font-size:11px;color:var(--muted);margin-top:9px}
+.result{width:min(440px,100%);margin-top:15px;padding:14px;border-radius:12px;background:#E9F6EF;color:#145B3E;text-align:left;display:none}
+.result.show{display:block}
+.result strong{display:block;font-size:14px}
+.result span{font-size:12px}
+.result.error{background:#FCECEC;color:#8C2929}
+.side{display:flex;flex-direction:column;gap:18px}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:0 0 6px}
+.field select,.field input{width:100%;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--site-on-background);font:inherit;font-size:13px}
+.btn{border:0;border-radius:9px;padding:11px 14px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--site-primary);color:white}
+.btn-secondary{background:var(--site-secondary);color:var(--site-on-secondary)}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.config-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.equipment{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface-2);border-radius:10px;margin-top:15px;font-size:12px}
+.equipment b{font-size:12px}
+.equipment span{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px}
+.stat span{display:block;color:var(--muted);font-size:11px}
+.stat strong{display:block;font-size:24px;margin-top:6px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 12px}
+.toolbar h2{font-size:16px;margin:0}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filters input,.filters select{height:36px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--site-on-background);padding:0 9px;font:inherit;font-size:12px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{text-align:left;padding:12px 13px;border-bottom:1px solid var(--line);font-size:12px}
+th{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:5px 8px;border-radius:20px;background:var(--site-secondary);color:var(--site-on-secondary);font-size:10px;font-weight:800}
+.empty{text-align:center;color:var(--muted);padding:26px}
+.foot{font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5}
+.modal-back{position:fixed;inset:0;background:#07152188;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}
+.modal-back.open{display:flex}
+.modal{width:min(520px,100%);background:var(--surface);border-radius:16px;padding:22px;border:1px solid var(--line)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-head h2{margin:0;font-size:17px}
+.close{background:transparent;border:0;color:var(--muted);font-size:23px;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.connection-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 18px}
+.connection-left{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;flex-wrap:wrap}
+.connection-dot{width:9px;height:9px;border-radius:50%;background:#a76b12;display:inline-block}
+.connection-dot.online{background:#16845b}
+.connection-dot.offline{background:#a76b12}
+.connection-actions{display:flex;gap:8px;flex-wrap:wrap}
+.auth-backdrop{position:fixed;inset:0;background:#0c1b26d9;z-index:10000;display:none;align-items:center;justify-content:center;padding:18px}
+.auth-backdrop.open{display:flex}
+.auth-card{width:min(440px,100%);background:var(--surface);color:var(--site-on-background);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 24px 80px #0005}
+.auth-card h2{margin:0 0 6px}
+.auth-card p{font-size:13px;color:var(--muted);line-height:1.5}
+.auth-card .field{margin:12px 0}
+.auth-card input{width:100%}
+.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.auth-note{font-size:11px!important;background:var(--surface-2);padding:10px;border-radius:8px}
+.password-wrap{display:flex;gap:8px;align-items:center}
+.password-wrap input{flex:1;min-width:0}
+.password-toggle{white-space:nowrap;min-width:88px}
+@media(max-width:850px){
+ .layout{grid-template-columns:1fr}
+ .scan-panel{min-height:380px}
+ .side{display:grid;grid-template-columns:1fr 1fr}
+ .side .panel:last-child{grid-column:1/-1}
+}
+@media(max-width:560px){
+ header{align-items:flex-start}
+ .header-right{display:none}
+ .topline{align-items:flex-start;flex-direction:column}
+ .side{display:flex}
+ .stats{gap:8px}
+ .stat{padding:12px}
+ .stat strong{font-size:20px}
+ .toolbar{align-items:flex-start;flex-direction:column}
+ .filters{width:100%}
+ .filters input{flex:1;min-width:130px}
+ .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+
+<header>
+ <a class="brand" href="https://www.empreiteiracs.com.br/" target="_blank" rel="noopener" aria-label="CS Empreiteira">
+  <div class="mark"><b>CS</b><em>EMPREITEIRA</em></div>
+  <div>
+   <strong>CONTROLE DE REFEIÇÕES</strong>
+   <small>CS EMPREITEIRA • GESTÃO DE ACESSO</small>
+  </div>
+ </a>
+ <div class="header-right">SISTEMA OPERACIONAL<br><span id="clock">--/--/---- --:--:--</span></div>
+</header>
+
+<main>
+ <div class="topline">
+  <div><div class="eyebrow">Central de controle</div><h1>Painel operacional</h1></div>
+  <div class="demo" id="appMode">VERSÃO 2.0 • VALIDAÇÃO CENTRAL + OFFLINE</div>
+ </div>
+
+ <div class="connection-bar">
+  <div class="connection-left">
+   <i class="connection-dot offline" id="connectionDot"></i>
+   <span id="connectionText">Aguardando autenticação</span>
+   <span id="userLabel" style="color:var(--muted);font-weight:500"></span>
+  </div>
+  <div class="connection-actions">
+   <button class="btn btn-secondary" id="syncNow">Sincronizar agora</button>
+   <button class="btn btn-secondary" id="sendEmployees">Enviar cadastro ao central</button>
+   <button class="btn btn-secondary" id="loginOpen">Entrar / trocar usuário</button>
+   <button class="btn btn-secondary" id="logoutBtn">Sair</button>
+  </div>
+ </div>
+
+ <div class="layout">
+  <section class="panel scan-panel">
+   <div class="scan-status"><i class="pulse"></i> LEITOR PRONTO PARA NOVA PASSAGEM</div>
+   <div class="scan-center">
+    <div class="qr-icon">
+     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3">
+      <path d="M5 19V6h13M30 6h13v13M43 29v13H30M18 42H5V29"/>
+      <path d="M12 12h7v7h-7zM29 12h7v7h-7zM12 29h7v7h-7zM29 29h4v4h-4zM37 29v7M29 39h8M39 39h4"/>
+     </svg>
+    </div>
+    <h3>Leia o QR Code do crachá</h3>
+    <p>Use a câmera do tablet ou digite/escaneie o código no campo abaixo.</p>
+    <input id="scanInput" class="scan-input" autocomplete="off" placeholder="Digite a matrícula ou leia pelo scanner..." aria-label="Leitura QR Code">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px">
+     <button class="btn btn-primary" id="startCamera">Ler pela câmera</button>
+     <button class="btn btn-secondary" id="stopCamera" style="display:none">Fechar câmera</button>
+    </div>
+    <div id="cameraBox" style="display:none;width:min(440px,100%);margin-top:14px">
+     <video id="cameraVideo" playsinline muted style="width:100%;max-height:280px;background:#101820;border-radius:12px"></video>
+     <div class="hint" id="cameraHint">Aponte a câmera para o QR Code do crachá.</div>
+    </div>
+    <div class="hint">Leitor USB/Bluetooth: conecte, leia o crachá e envie ENTER. Digitação manual: informe a matrícula e pressione ENTER.</div>
+    <div id="scanResult" class="result" role="status"></div>
+   </div>
+  </section>
+
+  <aside class="side">
+   <section class="panel">
+    <h2>Configuração deste tablet</h2>
+    <p class="sub">Cada tablet mantém sua própria base local. Identifique o equipamento e defina a frente e a refeição.</p>
+    <div class="config-grid">
+     <div class="field"><label for="deviceId">IDENTIFICAÇÃO DO TABLET</label><input id="deviceId" value="TABLET-01" maxlength="30"></div>
+     <div class="field"><label for="trecho">TRECHO / FRENTE</label>
+      <select id="trecho">
+       <option>301</option><option>302</option><option>204</option><option>208</option><option>101</option><option>111</option>
+      </select>
+     </div>
+     <div class="field"><label for="refeicao">REFEIÇÃO</label>
+      <select id="refeicao"><option>Café</option><option>Almoço</option><option>Janta</option></select>
+     </div>
+    </div>
+    <div class="config-actions"><button class="btn btn-primary" id="saveConfig">Salvar configuração</button></div>
+    <div class="equipment">
+     <div><b id="deviceName">TABLET • TABLET-01</b><br><span>Base local independente</span></div>
+     <span id="configLabel">301 / Café</span>
+    </div>
+   </section>
+
+   <section class="panel">
+    <h2>Cadastro de colaboradores</h2>
+    <p class="sub">Cadastre individualmente ou importe a relação oficial. A lista será atualizada pela base central após a sincronização.</p>
+    <button class="btn btn-secondary admin-only" id="openEmployee" style="width:100%">+ Cadastrar colaborador</button>
+    <input id="employeeFile" type="file" accept=".csv,.txt" style="display:none">
+    <button class="btn btn-secondary admin-only" id="importEmployees" style="width:100%;margin-top:8px">Importar cadastro CSV</button>
+    <button class="btn btn-secondary" id="downloadEmployeeTemplate" style="width:100%;margin-top:8px">Baixar modelo de cadastro CSV</button>
+    <div class="field" style="margin-top:14px">
+     <label for="qrEmployee">EMITIR QR CODE PERSONALIZADO</label>
+     <select id="qrEmployee"><option value="">Selecione colaborador ativo</option></select>
+    </div>
+    <button class="btn btn-primary" id="makeQr" style="width:100%;margin-top:8px">Gerar e imprimir QR Code</button>
+    <div id="qrOutput" style="display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:12px;background:var(--surface-2);border-radius:10px;margin-top:12px"></div>
+    <p class="foot">Modelo: MATRICULA;NOME;STATUS;QR_CODE. MATRICULA e NOME são obrigatórios. STATUS aceita ATIVO ou INATIVO. QR_CODE é opcional; se vazio, será usada a própria matrícula. No Excel, formate MATRICULA como TEXTO para preservar zeros à esquerda.</p>
+
+    <div id="employeeAdmin" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+     <h3 style="font-size:13px;margin:0 0 8px">Gerenciar colaboradores</h3>
+     <div class="field">
+      <label for="employeeAdminSearch">PESQUISAR POR NOME OU MATRÍCULA</label>
+      <input id="employeeAdminSearch" type="search" placeholder="Digite nome ou matrícula" style="width:100%;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--site-on-background)">
+     </div>
+     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+      <button class="btn btn-secondary admin-only" id="selectVisibleEmployees" type="button">Selecionar exibidos</button>
+      <button class="btn btn-secondary admin-only" id="clearEmployeeSelection" type="button">Limpar seleção</button>
+      <button class="btn btn-primary admin-only" id="deactivateSelectedEmployees" type="button">Inativar selecionados</button>
+     </div>
+     <div style="max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)">
+      <table style="min-width:0;width:100%">
+       <thead><tr><th style="width:34px"><input id="selectAllEmployees" type="checkbox" aria-label="Selecionar todos os exibidos"></th><th>Colaborador</th><th>Status</th></tr></thead>
+       <tbody id="employeeAdminBody"><tr><td colspan="3" class="empty">Carregando cadastro...</td></tr></tbody>
+      </table>
+     </div>
+     <p class="foot">A inativação exige conexão e perfil ADMIN. O cadastro permanece na planilha e o histórico de refeições não é apagado.</p>
+    </div>
+   </section>
+  </aside>
+ </div>
+
+ <div class="stats">
+  <div class="stat"><span>Passagens registradas hoje</span><strong id="todayCount">0</strong></div>
+  <div class="stat"><span>Colaboradores cadastrados</span><strong id="employeeCount">0</strong></div>
+  <div class="stat"><span>Trechos identificados hoje</span><strong id="segmentCount">0</strong></div>
+ </div>
+
+ <div class="toolbar">
+  <h2>Histórico de passagens</h2>
+  <div class="filters">
+   <input id="search" placeholder="Buscar matrícula ou nome">
+   <select id="filterTrecho">
+    <option value="">Todos os trechos</option><option>301</option><option>302</option><option>204</option><option>208</option><option>101</option><option>111</option>
+   </select>
+   <button class="btn btn-secondary" id="exportCsv">Exportar Excel / CSV</button>
+   <button class="btn btn-primary" id="shareRecords">Compartilhar registros</button>
+  </div>
+ </div>
+
+ <div class="table-wrap">
+  <table>
+   <thead><tr><th>Data</th><th>Hora</th><th>Matrícula</th><th>Colaborador</th><th>Trecho</th><th>Refeição</th><th>Equipamento</th><th>Status</th></tr></thead>
+   <tbody id="logBody"><tr><td colspan="8" class="empty">Nenhuma passagem registrada nesta sessão.</td></tr></tbody>
+  </table>
+ </div>
+ <p class="foot">Cadastros e passagens ficam salvos localmente neste tablet. A sincronização central é feita por lotes e confirma os IDs recebidos. Registros são enviados à base central quando houver conexão. Confira o indicador de sincronização.</p>
+</main>
+</div>
+
+<div class="modal-back" id="employeeModal">
+ <div class="modal">
+  <div class="modal-head"><h2>Novo colaborador</h2><button class="close" id="closeModal">×</button></div>
+  <div class="form-grid">
+   <div class="field"><label>MATRÍCULA (ÚNICA)</label><input id="empMat" placeholder="Ex.: 000517"></div>
+   <div class="field"><label>NOME COMPLETO</label><input id="empName" placeholder="Nome do colaborador"></div>
+  </div>
+  <p class="foot">O cadastro será criado como ATIVO. O QR Code poderá ser emitido na seção ao lado.</p>
+  <div class="modal-actions">
+   <button class="btn btn-secondary" id="cancelEmployee">Cancelar</button>
+   <button class="btn btn-primary" id="saveEmployee">Salvar colaborador</button>
+  </div>
+ </div>
+</div>
+
+<div class="auth-backdrop open" id="authBackdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+ <div class="auth-card">
+  <h2 id="authTitle">Acesso ao CS Controle de Refeições</h2>
+  <p>Entre com um usuário autorizado para habilitar a sincronização central. Após o primeiro acesso, o tablet poderá continuar registrando passagens offline.</p>
+  <div class="field">
+   <label for="authEmail">E-MAIL AUTORIZADO</label>
+   <input id="authEmail" type="email" autocomplete="username" placeholder="usuario@empresa.com">
+  </div>
+  <div class="field">
+   <label for="authPassword">PIN DE ACESSO</label>
+   <div class="password-wrap">
+    <input id="authPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Digite seu PIN">
+    <button class="btn btn-secondary password-toggle" id="togglePassword" type="button" aria-label="Mostrar PIN" aria-pressed="false">Mostrar</button>
+   </div>
+  </div>
+  <div class="auth-actions">
+   <button class="btn btn-primary" id="authLogin">Entrar</button>
+   <button class="btn btn-secondary" id="offlineContinue" style="display:none">Continuar offline</button>
+  </div>
+  <p class="auth-note" id="authMessage">Primeiro acesso exige internet e credenciais cadastradas na aba USUARIOS da planilha central.</p>
+ </div>
+</div>
+
+<iframe id="csApiFrame" name="csApiFrame" title="Integração central" style="display:none"></iframe>
+<form id="csApiForm" method="post" target="csApiFrame" style="display:none">
+ <input type="hidden" name="payload" id="csApiPayload">
+</form>
+
+<script>
+'use strict';
+
+const $ = id => document.getElementById(id);
+
+function esc(value) {
+ return String(value ?? '').replace(/[&<>"']/g, c => ({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+ }[c]));
+}
+
+function load(key, fallback) {
+ try {
+  const value = localStorage.getItem(key);
+  return value ? JSON.parse(value) : fallback;
+ } catch (error) {
+  console.warn('Falha ao ler armazenamento local:', error);
+  return fallback;
+ }
+}
+
+function saveLocal(key, value) {
+ try {
+  localStorage.setItem(key, JSON.stringify(value));
+  return true;
+ } catch (error) {
+  console.error('Falha ao salvar armazenamento local:', error);
+  return false;
+ }
+}
+
+function loadExternalScript(url) {
+ return new Promise((resolve, reject) => {
+  const script = document.createElement('script');
+  script.src = url;
+  script.onload = resolve;
+  script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca externa.'));
+  document.head.appendChild(script);
+ });
+}
+
+async function ensureQrGenerator() {
+ if (typeof QRCode !== 'undefined') return;
+ try {
+  await loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+ } catch (error) {
+  await loadExternalScript('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js');
+ }
+ if (typeof QRCode === 'undefined') throw new Error('Biblioteca de QR Code não carregou.');
+}
+
+/* Migração sem apagar os dados da versão anterior. */
+(function migrateV1ToV2() {
+ const pairs = [
+  ['cs_employees_v1','cs_employees_v2'],
+  ['cs_logs_v1','cs_logs_v2'],
+  ['cs_config_v1','cs_config_v2'],
+  ['cs_auth_cache_v1','cs_auth_cache_v2'],
+  ['cs_synced_ids_v1','cs_synced_ids_v2']
+ ];
+ pairs.forEach(([oldKey,newKey]) => {
+  if (localStorage.getItem(newKey) === null) {
+   const oldValue = localStorage.getItem(oldKey);
+   if (oldValue !== null) localStorage.setItem(newKey, oldValue);
+  }
+ });
+})();
+
+/* ======================== DADOS LOCAIS ======================== */
+
+let employees = load('cs_employees_v2', []);
+let logs = load('cs_logs_v2', []);
+let device = 'TABLET-01';
+
+if (!Array.isArray(employees)) employees = [];
+if (!Array.isArray(logs)) logs = [];
+
+const savedConfig = load('cs_config_v2', null);
+
+if (savedConfig) {
+ if (savedConfig.equipamento) device = String(savedConfig.equipamento);
+ if (savedConfig.trecho) $('trecho').value = savedConfig.trecho;
+ if (savedConfig.refeicao) $('refeicao').value = savedConfig.refeicao;
+}
+
+$('deviceId').value = device;
+$('deviceName').textContent = 'TABLET • ' + device;
+$('configLabel').textContent = $('trecho').value + ' / ' + $('refeicao').value;
+
+function persist() {
+ const okEmployees = saveLocal('cs_employees_v2', employees);
+ const okLogs = saveLocal('cs_logs_v2', logs);
+ const okConfig = saveLocal('cs_config_v2', {
+  equipamento:device,
+  trecho:$('trecho').value,
+  refeicao:$('refeicao').value
+ });
+
+ if (!okEmployees || !okLogs || !okConfig) {
+  feedback('<strong>Falha ao salvar localmente</strong><span>Verifique o espaço disponível no navegador.</span>', false);
+  return false;
+ }
+ return true;
+}
+
+function tick() {
+ $('clock').textContent = new Date().toLocaleString('pt-BR');
+}
+setInterval(tick, 1000);
+tick();
+
+/* ======================== API CENTRAL ======================== */
+
+/* SUBSTITUA pelo endereço da NOVA implantação do Apps Script. */
+const CS_API_URL = 'COLE_A_URL_DA_NOVA_IMPLANTACAO_2_0_AQUI';
+
+const CS_AUTH_KEY = 'cs_auth_cache_v2';
+const CS_SYNCED_KEY = 'cs_synced_ids_v2';
+
+let csAuth = load(CS_AUTH_KEY, null);
+let csOfflineMode = !navigator.onLine;
+let csSyncBusy = false;
+let csSyncTimer = null;
+let passageBusy = false;
+
+function getSyncedIds() {
+ const data = load(CS_SYNCED_KEY, []);
+ return new Set(Array.isArray(data) ? data.map(String) : []);
+}
+
+function saveSyncedIds(set) {
+ saveLocal(CS_SYNCED_KEY, Array.from(set));
+}
+
+function setConnection(label, mode) {
+ $('connectionText').textContent = label;
+ $('connectionDot').className = 'connection-dot ' + (mode === 'online' ? 'online' : 'offline');
+
+ const authenticated = !!(csAuth && csAuth.nome);
+ const isAdmin = !!(csAuth && csAuth.session && csAuth.perfil === 'ADMIN');
+
+ $('userLabel').textContent = authenticated
+  ? '• ' + csAuth.nome + ' (' + (csAuth.perfil || 'OPERADOR') + ')'
+  : '';
+
+ $('sendEmployees').style.display = isAdmin ? 'inline-block' : 'none';
+ $('logoutBtn').style.display = authenticated ? 'inline-block' : 'none';
+
+ $('syncNow').disabled = !navigator.onLine || !csAuth || !csAuth.session || csSyncBusy;
+
+ document.querySelectorAll('.admin-only').forEach(el => {
+  el.disabled = !isAdmin || !navigator.onLine;
+  el.title = !isAdmin ? 'Disponível somente para ADMIN' : (!navigator.onLine ? 'Conecte-se à internet' : '');
+ });
+
+ renderEmployeeAdmin();
+}
+
+function showAuth(message) {
+ $('authBackdrop').classList.add('open');
+ $('authMessage').textContent = message || 'Informe suas credenciais autorizadas.';
+ $('offlineContinue').style.display = csAuth && csAuth.lastLogin ? 'inline-block' : 'none';
+}
+
+function hideAuth() {
+ $('authBackdrop').classList.remove('open');
+}
+
+/*
+ * O backend deve devolver HTML contendo:
+ * parent.postMessage({nonce: "...", result: {...}}, "*");
+ */
+function apiRequest(payload) {
+ if (
+  !CS_API_URL.startsWith('https://script.google.com/macros/s/') ||
+  CS_API_URL.includes('COLE_A_URL')
+ ) {
+  return Promise.reject(new Error('Configure a URL da nova implantação 2.0 no HTML.'));
+ }
+
+ return new Promise((resolve, reject) => {
+  const nonce = (crypto && crypto.randomUUID)
+   ? crypto.randomUUID()
+   : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+
+  const request = {...payload, nonce};
+  let finished = false;
+  let timer;
+
+  const finish = (fn, value) => {
+   if (finished) return;
+   finished = true;
+   clearTimeout(timer);
+   window.removeEventListener('message', onMessage);
+   fn(value);
+  };
+
+  const onMessage = event => {
+   /* Aceita somente mensagens enviadas pelo iframe da API. */
+   if (event.source !== $('csApiFrame').contentWindow) return;
+
+   const data = event.data;
+   if (!data || data.nonce !== nonce || !data.result) return;
+
+   const result = data.result;
+
+   if (result.ok === false) {
+    finish(reject, new Error(result.error || 'Falha na operação central.'));
+   } else {
+    finish(resolve, result);
+   }
+  };
+
+  timer = setTimeout(() => {
+   finish(reject, new Error('O servidor não respondeu em 25 segundos. Verifique a implantação e a conexão.'));
+  }, 25000);
+
+  window.addEventListener('message', onMessage);
+
+  $('csApiPayload').value = JSON.stringify(request);
+  $('csApiForm').action = CS_API_URL;
+  $('csApiForm').submit();
+ });
+}
+
+/* ======================== COLABORADORES ======================== */
+
+function mergeCentralEmployees(list) {
+ if (!Array.isArray(list)) return;
+
+ const map = new Map(employees.map(e => [String(e.matricula), e]));
+
+ list.forEach(e => {
+  if (!e || e.matricula == null) return;
+
+  const matricula = String(e.matricula).trim();
+  if (!matricula) return;
+
+  map.set(matricula, {
+   matricula,
+   nome:String(e.nome || ''),
+   status:String(e.status || 'ATIVO').toUpperCase(),
+   qrcode:String(e.qrcode || e.qr_code || matricula)
+  });
+ });
+
+ employees = Array.from(map.values());
+ persist();
+ render();
+}
+
+function renderEmployeeAdmin() {
+ const body = $('employeeAdminBody');
+ if (!body) return;
+
+ const search = ($('employeeAdminSearch').value || '').trim().toLocaleLowerCase('pt-BR');
+
+ const filtered = employees.filter(e =>
+  !search ||
+  String(e.nome || '').toLocaleLowerCase('pt-BR').includes(search) ||
+  String(e.matricula || '').toLocaleLowerCase('pt-BR').includes(search)
+ );
+
+ body.innerHTML = filtered.length
+  ? filtered.map(e => `
+   <tr>
+    <td>
+     <input class="employee-select" type="checkbox"
+      value="${esc(e.matricula)}"
+      ${String(e.status).toUpperCase() === 'INATIVO' ? 'disabled' : ''}
+      aria-label="Selecionar ${esc(e.nome)}">
+    </td>
+    <td><b>${esc(e.nome)}</b><br><small>${esc(e.matricula)}</small></td>
+    <td><span class="pill">${esc(String(e.status || 'ATIVO').toUpperCase())}</span></td>
+   </tr>
+  `).join('')
+  : '<tr><td colspan="3" class="empty">Nenhum colaborador encontrado.</td></tr>';
+
+ const isAdmin = !!(csAuth && csAuth.session && csAuth.perfil === 'ADMIN');
+
+ ['selectVisibleEmployees','clearEmployeeSelection','deactivateSelectedEmployees','selectAllEmployees'].forEach(id => {
+  const el = $(id);
+  if (el) {
+   el.disabled = !isAdmin || !navigator.onLine;
+   el.title = !isAdmin ? 'Disponível somente para ADMIN' : (!navigator.onLine ? 'Conecte-se à internet' : '');
+  }
+ });
+}
+
+$('employeeAdminSearch').addEventListener('input', () => {
+ renderEmployeeAdmin();
+ $('selectAllEmployees').checked = false;
+});
+
+$('selectVisibleEmployees').onclick = () => {
+ document.querySelectorAll('#employeeAdminBody .employee-select:not(:disabled)').forEach(c => c.checked = true);
+ $('selectAllEmployees').checked = true;
+};
+
+$('selectAllEmployees').onchange = e => {
+ document.querySelectorAll('#employeeAdminBody .employee-select:not(:disabled)').forEach(c => c.checked = e.target.checked);
+};
+
+$('clearEmployeeSelection').onclick = () => {
+ document.querySelectorAll('#employeeAdminBody .employee-select').forEach(c => c.checked = false);
+ $('selectAllEmployees').checked = false;
+};
+
+$('deactivateSelectedEmployees').onclick = async () => {
+ if (!csAuth || csAuth.perfil !== 'ADMIN' || !csAuth.session) {
+  feedback('<strong>Acesso restrito</strong><span>Entre com um usuário ADMIN.</span>', false);
+  return;
+ }
+
+ if (!navigator.onLine) {
+  feedback('<strong>Sem conexão</strong><span>A inativação central exige internet.</span>', false);
+  return;
+ }
+
+ const matriculas = Array.from(
+  document.querySelectorAll('#employeeAdminBody .employee-select:checked')
+ ).map(c => c.value);
+
+ if (!matriculas.length) {
+  feedback('<strong>Nenhum colaborador selecionado</strong><span>Marque ao menos um cadastro ativo.</span>', false);
+  return;
+ }
+
+ if (!confirm('Confirma INATIVAR ' + matriculas.length + ' colaborador(es)? O histórico será preservado.')) return;
+
+ const btn = $('deactivateSelectedEmployees');
+ btn.disabled = true;
+
+ try {
+  const result = await apiRequest({
+   action:'deactivateEmployees',
+   session:csAuth.session,
+   deviceId:device,
+   matriculas
+  });
+
+  mergeCentralEmployees(result.employees || []);
+  $('selectAllEmployees').checked = false;
+
+  feedback(
+   '<strong>Inativação concluída na base central</strong><span>' +
+   Number(result.updated || 0) + ' cadastro(s) inativado(s). Histórico preservado.</span>'
+  );
+ } catch (err) {
+  feedback('<strong>Falha na inativação</strong><span>' + esc(err.message) + '</span>', false);
+ } finally {
+  renderEmployeeAdmin();
+  setConnection($('connectionText').textContent, navigator.onLine ? 'online' : 'offline');
+ }
+};
+
+/* ======================== LOGIN ======================== */
+
+async function loginCentral() {
+ const email = $('authEmail').value.trim().toLowerCase();
+ const pin = $('authPassword').value.trim();
+
+ if (!email || !pin) {
+  $('authMessage').textContent = 'Informe o e-mail e o PIN de acesso.';
+  return;
+ }
+
+ if (!/^\d{8,12}$/.test(pin)) {
+  $('authMessage').textContent = 'O PIN deve conter de 8 a 12 números.';
+  return;
+ }
+
+ if (!navigator.onLine) {
+  $('authMessage').textContent = 'Sem internet. Use Continuar offline somente se este tablet já teve um login autorizado.';
+  return;
+ }
+
+ $('authLogin').disabled = true;
+ $('authMessage').textContent = 'Validando acesso...';
+
+ try {
+  const result = await apiRequest({
+   action:'login',
+   email,
+   pin,
+   deviceId:device
+  });
+
+  if (!result.session || !result.perfil) {
+   throw new Error('Resposta de login incompleta. Verifique o retorno do Apps Script.');
+  }
+
+  csAuth = {
+   session:result.session,
+   email,
+   nome:result.nome || email,
+   perfil:String(result.perfil).toUpperCase(),
+   lastLogin:new Date().toISOString()
+  };
+
+  saveLocal(CS_AUTH_KEY, csAuth);
+
+  csOfflineMode = false;
+  $('authPassword').value = '';
+  hideAuth();
+
+  setConnection('Conectado à base central', 'online');
+
+  feedback(
+   '<strong>Acesso autorizado</strong><span>Usuário ' +
+   esc(csAuth.nome) + ' • Perfil ' + esc(csAuth.perfil) + '.</span>'
+  );
+
+  await syncCentral();
+
+ } catch (err) {
+  $('authMessage').textContent = err.message || 'Não foi possível autenticar.';
+ } finally {
+  $('authLogin').disabled = false;
+ }
+}
+
+$('authLogin').onclick = loginCentral;
+
+$('authPassword').addEventListener('keydown', e => {
+ if (e.key === 'Enter') loginCentral();
+});
+
+$('authEmail').addEventListener('keydown', e => {
+ if (e.key === 'Enter') $('authPassword').focus();
+});
+
+$('togglePassword').onclick = () => {
+ const field = $('authPassword');
+ const visible = field.type === 'password';
+
+ field.type = visible ? 'text' : 'password';
+ $('togglePassword').textContent = visible ? 'Ocultar' : 'Mostrar';
+ $('togglePassword').setAttribute('aria-label', visible ? 'Ocultar PIN' : 'Mostrar PIN');
+ $('togglePassword').setAttribute('aria-pressed', visible ? 'true' : 'false');
+
+ field.focus();
+};
+
+$('loginOpen').onclick = () => showAuth('Entre com seu usuário autorizado. O modo offline mantém os registros locais.');
+
+$('offlineContinue').onclick = () => {
+ if (!csAuth || !csAuth.lastLogin) return;
+
+ csOfflineMode = true;
+ hideAuth();
+
+ setConnection('Modo offline • usuário local ' + (csAuth.nome || ''), 'offline');
+ $('scanInput').focus();
+};
+
+$('logoutBtn').onclick = async () => {
+ try {
+  if (csAuth && csAuth.session && navigator.onLine) {
+   await apiRequest({action:'logout',session:csAuth.session,deviceId:device});
+  }
+ } catch (e) {
+  console.warn('Logout central:', e);
+ }
+
+ csAuth = null;
+ localStorage.removeItem(CS_AUTH_KEY);
+ csOfflineMode = true;
+
+ setConnection('Sessão encerrada', 'offline');
+ showAuth('Sessão encerrada. Entre novamente para continuar.');
+};
+
+/* ======================== SINCRONIZAÇÃO ======================== */
+
+async function syncCentral() {
+ if (csSyncBusy) return;
+
+ if (!navigator.onLine) {
+  csOfflineMode = true;
+  setConnection('Offline • registros salvos neste tablet', 'offline');
+  return;
+ }
+
+ if (!csAuth || !csAuth.session) {
+  setConnection('Aguardando login para sincronizar', 'offline');
+  return;
+ }
+
+ csSyncBusy = true;
+ setConnection('Sincronizando registros offline...', 'online');
+
+ try {
+  const synced = getSyncedIds();
+
+  const pending = logs.filter(x =>
+   x &&
+   x.id &&
+   !synced.has(String(x.id)) &&
+   x.status !== 'REJEITADO'
+  );
+
+  let totalReceived = 0;
+  let totalRejected = 0;
+
+  if (!pending.length) {
+   const result = await apiRequest({
+    action:'sync',
+    session:csAuth.session,
+    deviceId:device,
+    logs:[]
+   });
+
+   if (result.employees) mergeCentralEmployees(result.employees);
+
+  } else {
+   for (let i = 0; i < pending.length; i += 100) {
+    const batch = pending.slice(i, i + 100);
+
+    const result = await apiRequest({
+     action:'sync',
+     session:csAuth.session,
+     deviceId:device,
+     logs:batch
+    });
+
+    (result.acceptedIds || []).forEach(id => {
+     const key = String(id);
+     synced.add(key);
+
+     const item = logs.find(x => String(x.id) === key);
+     if (item) item.status = 'SINCRONIZADO';
+    });
+
+    (result.rejectedIds || []).forEach(item => {
+     const key = String(item.id || '');
+     if (!key) return;
+
+     synced.add(key);
+     totalRejected++;
+
+     const local = logs.find(x => String(x.id) === key);
+     if (local) {
+      local.status = 'REJEITADO';
+      local.motivo = item.reason || 'REJEITADO_NA_VALIDACAO_CENTRAL';
+      local.existingTime = item.existingTime || '';
+     }
+    });
+
+    totalReceived += Number(result.received || 0);
+
+    if (result.employees) mergeCentralEmployees(result.employees);
+
+    saveSyncedIds(synced);
+    persist();
+
+    if (
+     !(result.acceptedIds || []).length &&
+     !(result.rejectedIds || []).length
+    ) break;
+   }
+  }
+
+  saveSyncedIds(synced);
+  persist();
+  render();
+
+  const remaining = logs.filter(x =>
+   x && x.id && !synced.has(String(x.id)) && x.status !== 'REJEITADO'
+  ).length;
+
+  csOfflineMode = false;
+
+  setConnection(
+   remaining
+    ? 'Conectado • ' + remaining + ' pendência(s)'
+    : 'Sincronizado • ' + synced.size + ' registro(s) resolvidos',
+   'online'
+  );
+
+  if (totalRejected) {
+   speakCS2('Atenção! Alguns registros foram rejeitados na validação central.');
+  }
+
+  if (totalReceived || totalRejected) {
+   feedback(
+    '<strong>Sincronização concluída</strong><span>' +
+    totalReceived + ' passagem(ns) recebida(s) • ' +
+    totalRejected + ' rejeitada(s) • ' +
+    remaining + ' pendência(s).</span>',
+    totalRejected === 0
+   );
+  }
+
+ } catch (err) {
+  const msg = err.message || 'Falha na sincronização.';
+
+  setConnection('Sincronização pendente • ' + msg, 'offline');
+
+  if (/sess[aã]o expirada|faça login|faca login/i.test(msg)) {
+   csAuth.session = '';
+   saveLocal(CS_AUTH_KEY, csAuth);
+
+   showAuth('Sua sessão central expirou. Entre novamente. Os registros locais foram preservados.');
+  }
+
+ } finally {
+  csSyncBusy = false;
+  $('syncNow').disabled = !navigator.onLine || !csAuth || !csAuth.session;
+ }
+}
+
+function scheduleCentralSync() {
+ if (csSyncTimer) clearTimeout(csSyncTimer);
+
+ csSyncTimer = setTimeout(() => {
+  if (navigator.onLine && csAuth && csAuth.session) syncCentral();
+ }, 4000);
+}
+
+$('syncNow').onclick = syncCentral;
+
+window.addEventListener('online', () => {
+ if (csAuth && csAuth.session) {
+  setConnection('Internet disponível • sincronizando', 'online');
+  syncCentral();
+ } else {
+  setConnection('Internet disponível • aguardando login', 'offline');
+ }
+});
+
+window.addEventListener('offline', () => {
+ csOfflineMode = true;
+ setConnection('Offline • registros permanecem neste tablet', 'offline');
+});
+
+/* ======================== ENVIO DE COLABORADORES ======================== */
+
+async function uploadEmployeesCentral() {
+ if (!csAuth || csAuth.perfil !== 'ADMIN' || !csAuth.session) {
+  feedback('<strong>Acesso restrito</strong><span>Somente ADMIN pode enviar colaboradores.</span>', false);
+  return;
+ }
+
+ if (!navigator.onLine) {
+  feedback('<strong>Sem conexão</strong><span>Conecte o tablet à internet.</span>', false);
+  return;
+ }
+
+ if (!employees.length) {
+  feedback('<strong>Cadastro vazio</strong><span>Não há colaboradores para enviar.</span>', false);
+  return;
+ }
+
+ if (!confirm('Enviar ' + employees.length + ' colaborador(es) deste tablet para a base central?')) return;
+
+ $('sendEmployees').disabled = true;
+
+ try {
+  const result = await apiRequest({
+   action:'importEmployees',
+   session:csAuth.session,
+   deviceId:device,
+   employees
+  });
+
+  mergeCentralEmployees(result.employees || []);
+
+  feedback(
+   '<strong>Cadastro central atualizado</strong><span>' +
+   Number(result.added || 0) + ' novos • ' +
+   Number(result.updated || 0) + ' atualizados.</span>'
+  );
+
+ } catch (err) {
+  feedback('<strong>Falha ao enviar cadastro</strong><span>' + esc(err.message) + '</span>', false);
+ } finally {
+  $('sendEmployees').disabled = false;
+  setConnection($('connectionText').textContent, navigator.onLine ? 'online' : 'offline');
+ }
+}
+
+$('sendEmployees').onclick = uploadEmployeesCentral;
+
+/* ======================== MENSAGENS E ÁUDIO ======================== */
+
+function feedback(msg, ok = true) {
+ const el = $('scanResult');
+ el.className = 'result show' + (ok ? '' : ' error');
+ el.innerHTML = msg;
+}
+
+let csAudioContext = null;
+
+function playAccessSound(approved) {
+ try {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+
+  if (!csAudioContext) csAudioContext = new AudioCtx();
+
+  const ctx = csAudioContext;
+
+  const start = () => {
+   const now = ctx.currentTime;
+   const notes = approved
+    ? [{f:740,t:0,d:.11},{f:988,t:.14,d:.16}]
+    : [{f:220,t:0,d:.22},{f:165,t:.28,d:.25}];
+
+   notes.forEach(n => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = approved ? 'sine' : 'sawtooth';
+    osc.frequency.setValueAtTime(n.f, now + n.t);
+    gain.gain.setValueAtTime(.0001, now + n.t);
+    gain.gain.exponentialRampToValueAtTime(approved ? .16 : .12, now + n.t + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + n.t + n.d);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + n.t);
+    osc.stop(now + n.t + n.d + .02);
+   });
+  };
+
+  if (ctx.state === 'suspended') ctx.resume().then(start).catch(() => {});
+  else start();
+
+ } catch (err) {
+  console.warn('Áudio indisponível:', err);
+ }
+}
+
+function speakCS2(message) {
+ try {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.lang = 'pt-BR';
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  window.speechSynthesis.speak(utterance);
+ } catch (e) {
+  console.warn('Voz indisponível:', e);
+ }
+}
+
+function mealKey2(value) {
+ return String(value || '')
+  .trim()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g,'')
+  .toUpperCase()
+  .replace(/\s+/g,' ');
+}
+
+function localDuplicate2(matricula, refeicao, when) {
+ const target = mealKey2(refeicao);
+ const timestamp = new Date(when).getTime();
+
+ return logs.find(x => {
+  if (!x || x.status === 'REJEITADO') return false;
+
+  const previousTime = new Date(x.timestamp).getTime();
+  if (!Number.isFinite(previousTime)) return false;
+
+  return (
+   String(x.matricula) === String(matricula) &&
+   mealKey2(x.refeicao) === target &&
+   Math.abs(timestamp - previousTime) <= 180 * 60 * 1000
+  );
+ });
+}
+
+function showRejected2(entry, reason) {
+ entry.status = 'REJEITADO';
+ entry.motivo = reason || 'REFEICAO_JA_REGISTRADA_180_MIN';
+
+ logs.unshift(entry);
+ persist();
+ render();
+
+ playAccessSound(false);
+ speakCS2('Atenção! Refeição já registrada.');
+
+ feedback(
+  '<strong>Atenção! Refeição já registrada.</strong><span>' +
+  esc(entry.nome) + ' • ' + esc(entry.refeicao) + ' • ' + esc(entry.hora) +
+  '<br>Motivo: ' + esc(entry.motivo) + '</span>',
+  false
+ );
+}
+
+/* ======================== REGISTRO DE PASSAGEM ======================== */
+
+async function readCard(raw) {
+ const code = String(raw || '').trim();
+ if (!code || passageBusy) return;
+
+ passageBusy = true;
+ $('scanInput').disabled = true;
+
+ try {
+  const emp = employees.find(e =>
+   String(e.status || 'ATIVO').toUpperCase() === 'ATIVO' &&
+   (String(e.matricula) === code || String(e.qrcode || '') === code)
+  );
+
+  if (!emp) {
+   playAccessSound(false);
+   feedback(
+    '<strong>QR Code não cadastrado ou inativo</strong><span>Conteúdo lido: ' +
+    esc(code) + '. Verifique o cadastro.</span>',
+    false
+   );
+   return;
+  }
+
+  const now = new Date();
+
+  const entry = {
+   id:crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now()) + '-' + Math.random().toString(36).slice(2),
+   data:now.toLocaleDateString('pt-BR'),
+   hora:now.toLocaleTimeString('pt-BR'),
+   timestamp:now.toISOString(),
+   matricula:String(emp.matricula),
+   nome:String(emp.nome),
+   trecho:$('trecho').value,
+   refeicao:$('refeicao').value,
+   equipamento:device,
+   status:'PENDENTE'
+  };
+
+  const localDup = localDuplicate2(emp.matricula, entry.refeicao, entry.timestamp);
+
+  if (localDup) {
+   showRejected2(entry, 'DUPLICIDADE_LOCAL_180_MIN');
+   return;
+  }
+
+  if (navigator.onLine && csAuth && csAuth.session) {
+   try {
+    const result = await apiRequest({
+     action:'registerPassage',
+     session:csAuth.session,
+     deviceId:device,
+     entry
+    });
+
+    if (!result.accepted) {
+     showRejected2(entry, result.reason || 'REFEICAO_JA_REGISTRADA_180_MIN');
+    } else {
+     entry.status = 'SINCRONIZADO';
+     entry.timestamp = result.serverTimestamp || entry.timestamp;
+
+     logs.unshift(entry);
+
+     const ids = getSyncedIds();
+     ids.add(String(entry.id));
+     saveSyncedIds(ids);
+
+     persist();
+     render();
+
+     playAccessSound(true);
+     speakCS2('Acesso autorizado. Bom apetite!');
+
+     feedback(
+      '<strong>✓ Acesso autorizado. Bom apetite!</strong><span>' +
+      esc(emp.nome) + ' • Matrícula ' + esc(emp.matricula) +
+      '<br>' + esc(entry.trecho) + ' • ' + esc(entry.refeicao) +
+      ' • ' + esc(entry.hora) + '</span>'
+     );
+    }
+
+   } catch (err) {
+    /*
+     * Se a conexão cair depois do envio, preserva o mesmo ID.
+     * A central deverá reconhecer o ID na próxima sincronização.
+     */
+    logs.unshift(entry);
+    persist();
+    render();
+
+    speakCS2('Registro salvo. Aguardando confirmação da central.');
+
+    feedback(
+     '<strong>Confirmação pendente • registro salvo</strong><span>' +
+     esc(emp.nome) + ' • ' + esc(emp.refeicao) +
+     '. O mesmo identificador será conferido na próxima sincronização. ' +
+     esc(err.message || '') + '</span>'
+    );
+   }
+
+  } else {
+   logs.unshift(entry);
+   persist();
+   render();
+
+   speakCS2('Registro salvo offline. Aguardando validação central.');
+
+   feedback(
+    '<strong>Registro salvo offline • pendente de validação central</strong><span>' +
+    esc(emp.nome) + ' • ' + esc(emp.refeicao) +
+    '. Outros tablets podem ter registros ainda não sincronizados.</span>'
+   );
+
+   csOfflineMode = true;
+  }
+
+  if (navigator.onLine && csAuth && csAuth.session) scheduleCentralSync();
+
+ } finally {
+  $('scanInput').value = '';
+  $('scanInput').disabled = false;
+  $('scanInput').focus();
+  passageBusy = false;
+ }
+}
+
+$('scanInput').addEventListener('keydown', e => {
+ if (e.key === 'Enter') {
+  e.preventDefault();
+  readCard($('scanInput').value);
+ }
+});
+
+/* ======================== CÂMERA / QR CODE ======================== */
+
+let cameraStream = null;
+let cameraTimer = null;
+let cameraBusy = false;
+
+async function stopCamera() {
+ if (cameraTimer) clearInterval(cameraTimer);
+ cameraTimer = null;
+
+ if (cameraStream) {
+  cameraStream.getTracks().forEach(track => track.stop());
+ }
+
+ cameraStream = null;
+ $('cameraVideo').srcObject = null;
+ $('cameraBox').style.display = 'none';
+ $('stopCamera').style.display = 'none';
+ $('startCamera').style.display = 'inline-block';
+ $('scanInput').focus();
+}
+
+$('stopCamera').onclick = stopCamera;
+
+$('startCamera').onclick = async () => {
+ try {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+   throw new Error('A câmera exige que o sistema seja aberto por endereço HTTPS no Chrome.');
+  }
+
+  let detector = null;
+
+  if ('BarcodeDetector' in window) {
+   try {
+    detector = new BarcodeDetector({formats:['qr_code']});
+   } catch (e) {
+    detector = null;
+   }
+  }
+
+  if (!detector) {
+   if (typeof jsQR === 'undefined') {
+    try {
+     await loadExternalScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');
+    } catch (e) {
+     await loadExternalScript('https://unpkg.com/jsqr@1.4.0/dist/jsQR.js');
+    }
+   }
+
+   if (typeof jsQR === 'undefined') {
+    throw new Error('Leitor QR incompatível ou sem internet para carregar o leitor alternativo.');
+   }
+  }
+
+  cameraStream = await navigator.mediaDevices.getUserMedia({
+   audio:false,
+   video:{
+    facingMode:{ideal:'environment'},
+    width:{ideal:1280},
+    height:{ideal:720}
+   }
+  });
+
+  $('cameraVideo').srcObject = cameraStream;
+  await $('cameraVideo').play();
+
+  $('cameraBox').style.display = 'block';
+  $('stopCamera').style.display = 'inline-block';
+  $('startCamera').style.display = 'none';
+  $('cameraHint').textContent = 'Câmera ativa. Posicione o QR Code dentro da imagem.';
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
+
+  cameraTimer = setInterval(async () => {
+   if (cameraBusy || !cameraStream) return;
+
+   cameraBusy = true;
+
+   try {
+    const video = $('cameraVideo');
+
+    if (video.readyState >= 2) {
+     let value = '';
+
+     if (detector) {
+      const codes = await detector.detect(video);
+      if (codes.length) value = codes[0].rawValue || '';
+     } else {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      const result = jsQR(
+       frame.data,
+       frame.width,
+       frame.height,
+       {inversionAttempts:'attemptBoth'}
+      );
+
+      if (result) value = result.data;
+     }
+
+     if (value) {
+      await stopCamera();
+      await readCard(value);
+     }
+    }
+
+   } catch (err) {
+    console.warn('Falha na leitura QR:', err);
+   } finally {
+    cameraBusy = false;
+   }
+  }, 300);
+
+ } catch (err) {
+  let msg = err.message || 'Verifique a permissão da câmera.';
+
+  if (err.name === 'NotAllowedError') {
+   msg = 'Permissão da câmera negada. Permita o acesso à câmera nas configurações do Chrome.';
+  } else if (err.name === 'NotFoundError') {
+   msg = 'Nenhuma câmera foi encontrada neste equipamento.';
+  } else if (err.name === 'NotReadableError') {
+   msg = 'A câmera está sendo usada por outro aplicativo. Feche-o e tente novamente.';
+  }
+
+  feedback('<strong>Não foi possível abrir a câmera</strong><span>' + esc(msg) + '</span>', false);
+  await stopCamera();
+ }
+};
+
+/* ======================== CONFIGURAÇÃO DO TABLET ======================== */
+
+$('saveConfig').onclick = () => {
+ const id = $('deviceId').value.trim();
+
+ if (!id) {
+  feedback('<strong>Informe a identificação do tablet</strong><span>Use um código exclusivo, por exemplo TABLET-02.</span>', false);
+  return;
+ }
+
+ device = id;
+
+ $('deviceName').textContent = 'TABLET • ' + device;
+ $('configLabel').textContent = $('trecho').value + ' / ' + $('refeicao').value;
+
+ persist();
+
+ feedback(
+  '<strong>Configuração salva neste tablet</strong><span>Base local identificada como ' +
+  esc(device) + ' • ' + esc($('trecho').value) + ' • ' + esc($('refeicao').value) + '.</span>'
+ );
+
+ $('scanInput').focus();
+};
+
+/* ======================== HISTÓRICO E INDICADORES ======================== */
+
+function render() {
+ const q = $('search').value.toLocaleLowerCase('pt-BR');
+ const filter = $('filterTrecho').value;
+
+ const filtered = logs.filter(x =>
+  (!filter || String(x.trecho) === filter) &&
+  (
+   !q ||
+   String(x.matricula || '').toLocaleLowerCase('pt-BR').includes(q) ||
+   String(x.nome || '').toLocaleLowerCase('pt-BR').includes(q)
+  )
+ );
+
+ $('logBody').innerHTML = filtered.length
+  ? filtered.map(x => `
+   <tr>
+    <td>${esc(x.data)}</td>
+    <td>${esc(x.hora)}</td>
+    <td>${esc(x.matricula)}</td>
+    <td><b>${esc(x.nome)}</b></td>
+    <td><span class="pill">${esc(x.trecho)}</span></td>
+    <td>${esc(x.refeicao)}</td>
+    <td>${esc(x.equipamento || device)}</td>
+    <td>${esc(x.status || 'LEGADO')}</td>
+   </tr>
+  `).join('')
+  : '<tr><td colspan="8" class="empty">Nenhuma passagem encontrada.</td></tr>';
+
+ const active = employees.filter(e => String(e.status || 'ATIVO').toUpperCase() === 'ATIVO');
+
+ $('qrEmployee').innerHTML =
+  '<option value="">Selecione colaborador ativo</option>' +
+  active.map(e =>
+   `<option value="${esc(e.matricula)}">${esc(e.nome)} • ${esc(e.matricula)}</option>`
+  ).join('');
+
+ const today = new Date().toLocaleDateString('pt-BR');
+
+ const todayLogs = logs.filter(x =>
+  x.data === today &&
+  x.status !== 'REJEITADO' &&
+  x.status !== 'PENDENTE'
+ );
+
+ $('todayCount').textContent = todayLogs.length;
+ $('employeeCount').textContent = employees.length;
+ $('segmentCount').textContent = new Set(todayLogs.map(x => x.trecho)).size;
+
+ renderEmployeeAdmin();
+}
+
+$('search').oninput = render;
+$('filterTrecho').onchange = render;
+
+/* ======================== EXPORTAÇÃO E COMPARTILHAMENTO ======================== */
+
+function makeCsv() {
+ const rows = [
+  ['ID_REGISTRO','DATA','HORA','MATRICULA','NOME','TRECHO','REFEICAO','EQUIPAMENTO','STATUS','MOTIVO'],
+  ...logs.map(x => [
+   x.id,x.data,x.hora,x.matricula,x.nome,x.trecho,x.refeicao,
+   x.equipamento || device,x.status || 'LEGADO',x.motivo || ''
+  ])
+ ];
+
+ return '\ufeff' + rows.map(row =>
+  row.map(value => '"' + String(value ?? '').replace(/"/g,'""') + '"').join(';')
+ ).join('\r\n');
+}
+
+function downloadCsv() {
+ const blob = new Blob([makeCsv()], {type:'text/csv;charset=utf-8;'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+
+ a.href = url;
+ a.download = 'CS_passagens_refeicoes.csv';
+
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+
+ setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+$('exportCsv').onclick = downloadCsv;
+
+$('shareRecords').onclick = async () => {
+ if (!logs.length) {
+  feedback('<strong>Não há registros para compartilhar</strong><span>Faça ao menos uma leitura primeiro.</span>', false);
+  return;
+ }
+
+ try {
+  const file = new File(
+   [makeCsv()],
+   'CS_passagens_refeicoes.csv',
+   {type:'text/csv;charset=utf-8'}
+  );
+
+  if (navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))) {
+   await navigator.share({
+    title:'Registros de refeições CS',
+    text:'Registros exportados deste tablet',
+    files:[file]
+   });
+  } else {
+   downloadCsv();
+   feedback('<strong>Arquivo pronto para compartilhar</strong><span>Envie o CSV pelo e-mail, aplicativo de mensagens ou nuvem.</span>');
+  }
+
+ } catch (error) {
+  if (error.name !== 'AbortError') {
+   feedback('<strong>Compartilhamento indisponível</strong><span>Use Exportar Excel / CSV para salvar uma cópia.</span>', false);
+  }
+ }
+};
+
+/* ======================== CADASTRO INDIVIDUAL ======================== */
+
+function modal(open) {
+ $('employeeModal').classList.toggle('open', open);
+ if (open) $('empMat').focus();
+}
+
+$('openEmployee').onclick = () => {
+ if (!csAuth || csAuth.perfil !== 'ADMIN') {
+  feedback('<strong>Acesso restrito</strong><span>Somente ADMIN pode cadastrar colaboradores.</span>', false);
+  return;
+ }
+ modal(true);
+};
+
+$('closeModal').onclick = $('cancelEmployee').onclick = () => modal(false);
+
+$('saveEmployee').onclick = () => {
+ if (!csAuth || csAuth.perfil !== 'ADMIN') {
+  feedback('<strong>Acesso restrito</strong><span>Somente ADMIN pode cadastrar colaboradores.</span>', false);
+  return;
+ }
+
+ const matricula = $('empMat').value.trim();
+ const nome = $('empName').value.trim();
+
+ if (!matricula || !nome) {
+  alert('Preencha matrícula e nome.');
+  return;
+ }
+
+ if (employees.some(e => String(e.matricula) === matricula)) {
+  alert('Esta matrícula já está cadastrada.');
+  return;
+ }
+
+ employees.push({
+  matricula,
+  nome,
+  status:'ATIVO',
+  qrcode:matricula
+ });
+
+ persist();
+
+ $('empMat').value = '';
+ $('empName').value = '';
+
+ modal(false);
+ render();
+
+ feedback('<strong>Colaborador cadastrado localmente</strong><span>Envie o cadastro à base central para disponibilizá-lo aos outros tablets.</span>');
+};
+
+/* ======================== GERAÇÃO DE QR CODE ======================== */
+
+async function printQr() {
+ const matricula = $('qrEmployee').value;
+
+ if (!matricula) {
+  feedback('<strong>Selecione um colaborador</strong><span>Escolha um cadastro ativo para emitir o QR Code.</span>', false);
+  return;
+ }
+
+ const emp = employees.find(e => String(e.matricula) === String(matricula));
+ if (!emp) return;
+
+ const win = window.open('', '_blank');
+
+ if (!win) {
+  feedback('<strong>Pop-up bloqueado</strong><span>Permita pop-ups para este site no Chrome e tente novamente.</span>', false);
+  return;
+ }
+
+ win.document.write('<p style="font-family:Arial;padding:24px">Preparando QR Code...</p>');
+
+ try {
+  await ensureQrGenerator();
+
+  const holder = document.createElement('div');
+
+  new QRCode(holder, {
+   text:String(emp.qrcode || emp.matricula),
+   width:240,
+   height:240,
+   correctLevel:QRCode.CorrectLevel.M
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const qr = holder.querySelector('img') || holder.querySelector('canvas');
+
+  if (!qr) throw new Error('O gerador não produziu a imagem do QR Code.');
+
+  const src = qr.tagName === 'CANVAS' ? qr.toDataURL('image/png') : qr.src;
+
+  const out = $('qrOutput');
+  out.style.display = 'flex';
+
+  out.innerHTML =
+   '<img alt="QR Code" style="width:120px;height:120px" src="' + src + '">' +
+   '<div><strong>' + esc(emp.nome) + '</strong><small>Matrícula: ' +
+   esc(emp.matricula) + '<br>QR de acesso individual</small></div>';
+
+  win.document.open();
+
+  win.document.write(
+   '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+   '<title>QR Code - ' + esc(emp.nome) + '</title>' +
+   '<style>body{font-family:Arial;text-align:center;padding:30px}' +
+   '.card{border:1px solid #ccc;border-radius:12px;padding:24px;display:inline-block}' +
+   'img{width:240px;height:240px}h2{font-size:18px}p{font-size:13px}</style>' +
+   '</head><body><div class="card"><h2>' + esc(emp.nome) +
+   '</h2><p>Matrícula: ' + esc(emp.matricula) +
+   '</p><img src="' + src + '">' +
+   '<p>CS • Controle de Refeições</p></div>' +
+   '<script>window.onload=()=>window.print();<\/script>' +
+   '</body></html>'
+  );
+
+  win.document.close();
+
+ } catch (err) {
+  win.close();
+  feedback('<strong>Não foi possível gerar o QR Code</strong><span>' + esc(err.message) + '</span>', false);
+ }
+}
+
+$('makeQr').onclick = printQr;
+
+/* ======================== IMPORTAÇÃO CSV ======================== */
+
+function parseCsvLine(line, delimiter) {
+ const out = [];
+ let value = '';
+ let quoted = false;
+
+ for (let i = 0; i < line.length; i++) {
+  const c = line[i];
+
+  if (c === '"' && quoted && line[i + 1] === '"') {
+   value += '"';
+   i++;
+  } else if (c === '"') {
+   quoted = !quoted;
+  } else if (c === delimiter && !quoted) {
+   out.push(value.trim());
+   value = '';
+  } else {
+   value += c;
+  }
+ }
+
+ out.push(value.trim());
+ return out;
+}
+
+$('downloadEmployeeTemplate').onclick = () => {
+ const content = '\ufeffMATRICULA;NOME;STATUS;QR_CODE\r\n';
+ const blob = new Blob([content], {type:'text/csv;charset=utf-8;'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+
+ a.href = url;
+ a.download = 'CS_modelo_importacao_colaboradores.csv';
+
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+
+ setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+ feedback('<strong>Modelo CSV baixado</strong><span>Preencha MATRICULA e NOME. Mantenha a primeira linha e salve em CSV UTF-8.</span>');
+};
+
+$('importEmployees').onclick = () => {
+ if (!csAuth || csAuth.perfil !== 'ADMIN') {
+  feedback('<strong>Acesso restrito</strong><span>Somente ADMIN pode importar colaboradores.</span>', false);
+  return;
+ }
+ $('employeeFile').click();
+};
+
+$('employeeFile').onchange = async e => {
+ const file = e.target.files[0];
+ if (!file) return;
+
+ if (!csAuth || csAuth.perfil !== 'ADMIN') {
+  feedback('<strong>Acesso restrito</strong><span>Somente ADMIN pode importar colaboradores.</span>', false);
+  e.target.value = '';
+  return;
+ }
+
+ try {
+  const raw = (await file.text()).replace(/^\uFEFF/, '');
+  const lines = raw.split(/\r?\n/).filter(x => x.trim());
+
+  if (lines.length < 2) {
+   throw new Error('O arquivo contém apenas o cabeçalho. Inclua ao menos um colaborador.');
+  }
+
+  const delimiters = [';', '\t', ','];
+
+  const delimiter = delimiters.sort((a,b) =>
+   parseCsvLine(lines[0], b).length - parseCsvLine(lines[0], a).length
+  )[0];
+
+  const headers = parseCsvLine(lines[0], delimiter).map(x =>
+   x.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/g,'')
+  );
+
+  const col = name => headers.indexOf(name);
+
+  if (col('MATRICULA') < 0 || col('NOME') < 0) {
+   throw new Error('Inclua as colunas MATRICULA e NOME.');
+  }
+
+  let added = 0;
+  let updated = 0;
+
+  const processed = new Set();
+
+  for (const line of lines.slice(1)) {
+   const cells = parseCsvLine(line, delimiter);
+
+   const matricula = String(cells[col('MATRICULA')] || '').trim();
+   const nome = String(cells[col('NOME')] || '').trim();
+
+   if (!matricula || !nome) continue;
+
+   if (processed.has(matricula)) {
+    throw new Error('A matrícula ' + matricula + ' aparece mais de uma vez no arquivo.');
+   }
+
+   processed.add(matricula);
+
+   const rawStatus = col('STATUS') >= 0
+    ? String(cells[col('STATUS')] || '').trim().toUpperCase()
+    : 'ATIVO';
+
+   const status = rawStatus || 'ATIVO';
+
+   if (!['ATIVO','INATIVO'].includes(status)) {
+    throw new Error('Status inválido na matrícula ' + matricula + '. Use ATIVO ou INATIVO.');
+   }
+
+   const qrcode = (
+    col('QR_CODE') >= 0
+     ? String(cells[col('QR_CODE')] || '').trim()
+     : ''
+   ) || matricula;
+
+   const existing = employees.find(x => String(x.matricula) === matricula);
+
+   if (existing) {
+    existing.nome = nome;
+    existing.status = status;
+    existing.qrcode = qrcode;
+    updated++;
+   } else {
+    employees.push({matricula,nome,status,qrcode});
+    added++;
+   }
+  }
+
+  persist();
+  render();
+
+  feedback(
+   '<strong>Importação local concluída</strong><span>' +
+   added + ' novos cadastros • ' + updated +
+   ' atualizados • ' + employees.length +
+   ' colaboradores no total. Envie à central para atualizar os demais tablets.</span>'
+  );
+
+ } catch (err) {
+  feedback('<strong>Falha na importação</strong><span>' + esc(err.message) + '</span>', false);
+ } finally {
+  e.target.value = '';
+ }
+};
+
+/* ======================== INICIALIZAÇÃO ======================== */
+
+render();
+
+if (csAuth && csAuth.lastLogin) {
+ if (navigator.onLine && csAuth.session) {
+  hideAuth();
+  setConnection('Reconectando à base central...', 'online');
+  setTimeout(syncCentral, 700);
+ } else {
+  showAuth('Sem conexão ou sessão indisponível. Você pode continuar offline porque este tablet já teve um login autorizado.');
+  setConnection('Aguardando opção de acesso offline', 'offline');
+ }
+} else {
+ csAuth = null;
+ setConnection('Aguardando autenticação', 'offline');
+ showAuth('Primeiro acesso exige internet e credenciais cadastradas na aba USUARIOS da planilha central.');
+}
+
+window.addEventListener('beforeunload', () => {
+ if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+});
+
+$('scanInput').focus();
+
+</script>
+</body>
+</html>
