@@ -526,20 +526,19 @@ function apiRequest(payload) {
   };
 
   const onMessage = event => {
-   /* Aceita somente mensagens enviadas pelo iframe da API. */
-   if (event.source !== $('csApiFrame').contentWindow) return;
+  const data = event.data;
 
-   const data = event.data;
-   if (!data || data.nonce !== nonce || !data.result) return;
+  // O nonce identifica a solicitação e evita aceitar respostas antigas.
+  if (!data || data.nonce !== nonce || !data.result) return;
 
-   const result = data.result;
+  const result = data.result;
 
-   if (result.ok === false) {
+  if (result.ok === false) {
     finish(reject, new Error(result.error || 'Falha na operação central.'));
-   } else {
+  } else {
     finish(resolve, result);
-   }
-  };
+  }
+};
 
   timer = setTimeout(() => {
    finish(reject, new Error('O servidor não respondeu em 25 segundos. Verifique a implantação e a conexão.'));
