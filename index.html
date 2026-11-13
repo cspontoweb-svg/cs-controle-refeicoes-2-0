@@ -528,15 +528,22 @@ function apiRequest(payload) {
   const onMessage = event => {
   const data = event.data;
 
-  // O nonce identifica a solicitação e evita aceitar respostas antigas.
-  if (!data || data.nonce !== nonce || !data.result) return;
+  console.log('CS20: mensagem recebida:', data);
+  console.log('CS20: nonce esperado:', nonce);
 
-  const result = data.result;
+  if (!data || data.nonce !== nonce || !data.result) {
+    console.warn('CS20: resposta ignorada — nonce ou formato diferente.');
+    return;
+  }
 
-  if (result.ok === false) {
-    finish(reject, new Error(result.error || 'Falha na operação central.'));
+  console.log('CS20: resposta reconhecida:', data.result);
+
+  if (data.result.ok === false) {
+    finish(reject, new Error(
+      data.result.error || 'Falha na operação central.'
+    ));
   } else {
-    finish(resolve, result);
+    finish(resolve, data.result);
   }
 };
 
