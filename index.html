@@ -441,7 +441,7 @@ tick();
 
 /* ======================== API CENTRAL ======================== */
 
-/* SUBSTITUA pelo endereço da NOVA implantação do Apps Script. */
+/* API central: implantação CS 2.0 informada pelo usuário. */
 const CS_API_URL = 'https://script.google.com/macros/s/AKfycbzO2hWIzC3TDrnFv7zGmgLElQS0GAhMfRBDUkuxhJUwOynskpgL4iXVExjk1T1Q2wDn/exec';
 
 const CS_AUTH_KEY = 'cs_auth_cache_v2';
@@ -784,21 +784,31 @@ $('offlineContinue').onclick = () => {
  $('scanInput').focus();
 };
 
-$('logoutBtn').onclick = async () => {
- try {
-  if (csAuth && csAuth.session && navigator.onLine) {
-   await apiRequest({action:'logout',session:csAuth.session,deviceId:device});
-  }
- } catch (e) {
-  console.warn('Logout central:', e);
- }
+/*
+ * SAIR: encerra a sessão local imediatamente para não deixar o botão
+ * esperando os 25 segundos da comunicação com o Apps Script.
+ * A revogação central é enviada em segundo plano.
+ */
+$('logoutBtn').type = 'button';
+$('logoutBtn').onclick = () => {
+ const sessaoAnterior = csAuth && csAuth.session ? csAuth.session : null;
 
+ // Primeiro encerra a sessão neste navegador/tablet.
  csAuth = null;
  localStorage.removeItem(CS_AUTH_KEY);
  csOfflineMode = true;
 
+ // Atualiza a interface imediatamente.
  setConnection('Sessão encerrada', 'offline');
  showAuth('Sessão encerrada. Entre novamente para continuar.');
+ $('authPassword').value = '';
+ $('authEmail').focus();
+
+ // Tenta revogar a sessão no servidor sem bloquear o botão Sair.
+ if (sessaoAnterior && navigator.onLine) {
+  apiRequest({action:'logout', session:sessaoAnterior, deviceId:device})
+   .catch(err => console.warn('Não foi possível confirmar o encerramento central:', err));
+ }
 };
 
 /* ======================== SINCRONIZAÇÃO ======================== */
